@@ -11,8 +11,8 @@ from datetime import datetime
 class UserBase(BaseModel):
     username: str
     email: str
-    active: bool
-    admin: bool
+    # active: bool
+    # admin: bool
 
 
 # Schema for User Registration (Sign Up)
@@ -31,10 +31,11 @@ class UserProfileUpdate(BaseModel):
 # Schema for Returning User Details (Excluding Password)
 class UserOut(UserBase):
     id: int
-    last_login: datetime
+    last_login: Optional[datetime] = None 
 
     class Config:
-        orm_mode = True  # Enable SQLAlchemy ORM compatibility
+      from_attributes = True 
+# Enable SQLAlchemy ORM compatibility
 
 
 # Schema for User Profile
@@ -95,3 +96,17 @@ class Chat(ChatBase):
 class Token(BaseModel):
     access_token: str
     token_type: str 
+
+
+class QueryRequest(BaseModel):
+    user_id: str
+    chat_id: str
+    query: str
+
+# ✅ Response Model
+class QueryResponse(BaseModel):
+    id: str
+    content: str
+    sender_role: str
+    created_at: datetime
+    answer: str    

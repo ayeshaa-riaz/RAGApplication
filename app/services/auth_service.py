@@ -9,7 +9,11 @@ from ..db.database import get_db
 from ..db.models.user_model import User
 from ..db.schemas import schemas
 import os
+import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 # Configure password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/token")
@@ -31,6 +35,8 @@ def get_password_hash(password: str):
 def get_user(db: Session, username: str):
     return db.query(User).filter(User.username == username).first()
 
+def get_user_by_email(db: Session, email: str):
+    return db.query(User).filter(User.email == email).first()
 # Create access token function
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
@@ -42,6 +48,27 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+# async def get_current_user(
+#     token: str = Depends(oauth2_scheme),
+#     db: Session = Depends(get_db)
+# ) -> User:
+#     credentials_exception = HTTPException(
+#         status_code=status.HTTP_401_UNAUTHORIZED,
+#         detail="Could not validate credentials",
+#         headers={"WWW-Authenticate": "Bearer"},
+#     )
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         username: str = payload.get("sub")
+#         if username is None:
+#             raise credentials_exception
+#     except JWTError:
+#         raise credentials_exception
+    
+#     user = get_user(db, username=username)
+#     if user is None:
+#         raise credentials_exception
+#     return user
 async def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -52,35 +79,63 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
+        print(f"Received Token: {token}")  # Debugging
+
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        email: str = payload.get("sub")
+        
+        print(f"Decoded JWT Payload: {payload}")  # Debugging
+        print(f"Extracted Username: {email}")  # Debugging
+
+        if email is None:
             raise credentials_exception
     except JWTError:
         raise credentials_exception
     
-    user = get_user(db, username=username)
+    user = get_user_by_email(db, email=email)
     if user is None:
+        print(f"User not found for username: {email}")  # Debugging
         raise credentials_exception
+    
+    print(f"Authenticated User: {user}")  # Debugging
     return user
 
+
+# def create_user(db: Session, user: schemas.UserCreate):
+#     hashed_password = get_password_hash(user.password)
+#     db_user = User(
+#         email=user.email,
+#         username=user.username,
+#         hashed_password=hashed_password
+#     )
+#     db.add(db_user)
+#     db.commit()
+#     db.refresh(db_user)
+#     return db_user
 def create_user(db: Session, user: schemas.UserCreate):
-    hashed_password = get_password_hash(user.password)
-    db_user = User(
-        email=user.email,
-        username=user.username,
-        hashed_password=hashed_password
-    )
-    db.add(db_user)
-    db.commit()
-    db.refresh(db_user)
-    return db_user
+    logging.info(f"Attempting to create user: {user.email}")
+    try:
+        hashed_password = get_password_hash(user.password)
+        db_user = User(
+            email=user.email,
+            username=user.username,
+            password_hash=hashed_password  # Match your actual column name
+        )
+        db.add(db_user)
+        db.commit()
+        db.refresh(db_user)
+        logging.info(f"User {user.email} created successfully.")
+        return db_user
+    except Exception as e:
+        logging.error(f"Error creating user: {e}")
+        db.rollback()  # Ensure the DB isn't left in an inconsistent state
+        return None
 
 def authenticate_user(db: Session, user: schemas.LoginRequest):
-    user_in_db = get_user(db, user.name)
-    if not user:
+    user_in_db = get_user_by_email(db, user.email)
+    if not user_in_db:
         return False
-    if not verify_password(user.password, user_in_db.hashed_password):
+    if not verify_password(user.password, user_in_db.password_hash):
         return False
     return user 
 

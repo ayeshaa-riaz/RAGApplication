@@ -1,38 +1,51 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.schemas import schemas
-from app.services.auth_service import create_access_token, authenticate_user, create_user
-from app.db.models.user_model import User
+from app.services import auth_service
+from datetime import datetime, timedelta
+from typing import Optional
 
-router = APIRouter(prefix="/auth", tags=["auth"])
+router = APIRouter()
 
 # User Sign Up (Registration)
-@router.post("/signup", response_model=schemas.UserProfile)
-async def sign_up(
-    user_create: schemas.UserCreate,  # Use UserCreate for registration
-    db: Session = Depends(get_db)
-):
-    """Sign up a new user"""
-    # Check if the user already exists
-
-    existing_user = db.query(User).filter(User.email == user_create.email).first()
-    if existing_user:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-
-    new_user = create_user(db,user_create)
-    return new_user  
+@router.post("/signup", response_model=schemas.UserOut)
+def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """
+    Create a new user account.
+    """
+    # Check if user already exists
+    db_user = auth_service.get_user(db, username=user.username)
+    if db_user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already registered"
+        )
+    
+    # Create new user
+    return auth_service.create_user(db=db, user=user)
 
 # User Login (Authentication)
 @router.post("/login", response_model=schemas.Token)
-async def login(
-    credentials: schemas.LoginRequest,  
+def login(
+    form_data: schemas.LoginRequest,
     db: Session = Depends(get_db)
 ):
-    """Log in an existing user and return a JWT token"""
-    user = db.query(User).filter(User.email == credentials.email).first()
-    authenticate_user(db,credentials)
-   
-    # Create and return an access token
-    access_token = create_access_token(data={"sub": user.email})
+    """
+    Authenticate user and return access token.
+    """
+    user = auth_service.authenticate_user(db, form_data)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    
+    access_token_expires = timedelta(minutes=auth_service.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = auth_service.create_access_token(
+        data={"sub": user.email}, expires_delta=access_token_expires
+    )
+    
     return {"access_token": access_token, "token_type": "bearer"}

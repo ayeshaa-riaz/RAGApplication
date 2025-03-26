@@ -8,11 +8,11 @@ import uuid
 
 
 
-router = APIRouter(prefix="/sources", tags=["sources"])
+router = APIRouter()
 document_loader = DocumentLoader()
 
 @router.post("/upload/pdf")
-async def upload_pdf(file: UploadFile = File(...)):
+async def upload_pdf(file: UploadFile = File(...),collection_name="PrimaryCollection"):
     """Upload a PDF file and store its content in both source store and Qdrant."""
     try:
         # Process the PDF file and store its content in the source store
@@ -25,7 +25,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         documents = await document_loader.load_and_split_pdf(file_content, file.filename)
         qdrant = await document_loader.store_documents(
             documents=documents,
-            collection_name=f"pdf_{source_id}"
+            collection_name=collection_name
         )
 
         return {
@@ -43,7 +43,7 @@ async def upload_pdf(file: UploadFile = File(...)):
         )
 
 
-@router.get("/sources/")
+@router.get("/get_all_sources/")
 async def get_sources(source_type: Optional[str] = None, page: int = 1, limit: int = 10):
     """Retrieve all stored sources with optional filtering and pagination."""
     sources = list(source_store.values())

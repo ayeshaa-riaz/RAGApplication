@@ -6,7 +6,7 @@ from app.services.auth_service import get_current_user
 from app.db.models.user_model import User
 from app.services.user_service import update_user_profile
 
-router = APIRouter(prefix="/users", tags=["users"])
+router = APIRouter()
 
 # Get current user's profile
 @router.get("/me", response_model=schemas.UserProfile)

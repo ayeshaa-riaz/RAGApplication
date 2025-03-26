@@ -1,13 +1,10 @@
 from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Qdrant
 from .embeddings import get_embeddings
 from typing import List
 import tempfile
 import os
-from dotenv import load_dotenv
-
-load_dotenv()
+from ..services.qdrant_service import QdrantService
 
 class DocumentLoader:
     """
@@ -24,8 +21,7 @@ class DocumentLoader:
             length_function=len,
         )
         self.embeddings = get_embeddings()
-        self.qdrant_url = os.getenv("QDRANT_URL")
-        self.qdrant_api_key = os.getenv("QDRANT_API_KEY")
+        self.qdrant_service = QdrantService()
 
     # async def load_and_split_url(self, url: str) -> List:
     #     """
@@ -65,23 +61,8 @@ class DocumentLoader:
 
         return split_docs
 
-    async def store_documents(self, documents: List, collection_name: str) -> Qdrant:
+    async def store_documents(self, documents: List, collection_name: str) -> None:
         """
-        Stores the processed documents in a Qdrant vector database.
-
-        Args:
-            documents (List): The list of document chunks to store.
-            collection_name (str): The Qdrant collection name.
-
-        Returns:
-            Qdrant: The Qdrant database instance.
+        Stores the processed documents in Qdrant using the QdrantService.
         """
-        qdrant = Qdrant.from_documents(
-            documents,
-            self.embeddings,
-            url=self.qdrant_url,
-            api_key=self.qdrant_api_key,
-            collection_name=collection_name,
-            force_recreate=False,
-        )
-        return qdrant
+        self.qdrant_service.add_documents(documents, collection_name)

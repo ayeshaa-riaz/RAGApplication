@@ -1,51 +1,28 @@
-import datetime
-from pydantic import BaseModel
-from fastapi import APIRouter, HTTPException
-
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from ..db.schemas import schemas
+from db.database import get_db
+from ..services.qdrant_service import QdrantService
 
 router = APIRouter()
+qdrant = QdrantService()
 
-# ✅ Request Model
-class QueryRequest(BaseModel):
-    user_id: str
-    chat_id: str
-    query: str
-
-# ✅ Response Model
-class QueryResponse(BaseModel):
-    id: str
-    content: str
-    sender_role: str
-    created_at: datetime.datetime
-    answer: str
-
-@router.post("/query", response_model=QueryResponse)
-def agent_query(query_request: QueryRequest):
-    """Handles user queries and returns an AI-generated response."""
-    
+@router.post("/", response_model=str)
+async def agent_query(
+    query_request: schemas.QueryRequest,
+    db: Session = Depends(get_db)
+):
+    """Handles user queries and returns context"""
     try:
-        # ✅ Create an agent instance and get the answer
-        agent = BaseAgent()
-        answer = agent.ask_agent(
-            query=query_request.query,
-            user_id=query_request.user_id,
-            chat_id=query_request.chat_id,
-        )
+        # Perform a similarity search in the vector database
+        context = qdrant.search_similar(query_request.query, collection_name=query_request.collection_name)
 
-        # ✅ Ensure response is valid
-        if not answer:
-            raise HTTPException(status_code=500, detail="Agent failed to generate a response")
+        if not context:
+            raise HTTPException(status_code=404, detail="No similar documents found")
 
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Error processing request: {str(e)}"
         )
 
-    # ✅ Return structured response
-    return QueryResponse(
-        id=str(answer.id),
-        content=answer.content,
-        sender_role=answer.sender_role,
-        created_at=answer.created_at,
-        answer=answer.content,
-    )
+    return context
