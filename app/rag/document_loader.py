@@ -4,7 +4,9 @@ from .embeddings import get_embeddings
 from typing import List
 import tempfile
 import os
-from ..services.qdrant_service import QdrantService
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DocumentLoader:
     """
@@ -20,23 +22,7 @@ class DocumentLoader:
             chunk_overlap=200,
             length_function=len,
         )
-        self.embeddings = get_embeddings()
-        self.qdrant_service = QdrantService()
-
-    # async def load_and_split_url(self, url: str) -> List:
-    #     """
-    #     Loads a webpage and splits its text into chunks.
-
-    #     Args:
-    #         url (str): The URL of the webpage to load.
-
-    #     Returns:
-    #         List: A list of split document chunks.
-    #     """
-    #     loader = WebBaseLoader(url)
-    #     docs = loader.load()
-    #     return self.text_splitter.split_documents(docs)
-
+       
     async def load_and_split_pdf(self, file_content: bytes, filename: str) -> List:
         """
         Loads and splits a PDF file into chunks.
@@ -61,8 +47,4 @@ class DocumentLoader:
 
         return split_docs
 
-    async def store_documents(self, documents: List, collection_name: str) -> None:
-        """
-        Stores the processed documents in Qdrant using the QdrantService.
-        """
-        self.qdrant_service.add_documents(documents, collection_name)
+    

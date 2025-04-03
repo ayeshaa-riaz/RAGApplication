@@ -69,38 +69,9 @@ class SourceContentStatus:
     UNINDEXED = "unindexed"
     DELETED = "deleted"
 
-class MessageBase(BaseModel):
-    content: str
-    role: str
-
-class Message(MessageBase):
-    id: int
-    chat_id: int
-    created_at: datetime
-
-    class Config:
-        from_attributes = True
-
-class ChatBase(BaseModel):
-    title: str
-
-class Chat(ChatBase):
-    id: int
-    user_id: int
-    created_at: datetime
-    messages: List[Message] = []
-
-    class Config:
-        from_attributes = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str 
-
-
 class QueryRequest(BaseModel):
-    user_id: str
-    chat_id: str
+    user_id: int
+    chat_id: int
     query: str
 
 # ✅ Response Model
@@ -110,3 +81,48 @@ class QueryResponse(BaseModel):
     sender_role: str
     created_at: datetime
     answer: str    
+
+
+# ChatMessage Model
+class ChatMessageBase(BaseModel):
+    sender: str  # "user" or "assistant"
+    message: str
+
+class ChatMessageCreate(ChatMessageBase):
+    pass  # No extra fields required when creating a message
+
+class ChatMessageResponse(ChatMessageBase):
+    id: int
+    chat_id: int
+    user_id: int
+    sender: str  # <- This might not match your DB field name
+    message: str  # <- This might not match your DB field name
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+# ChatSession Model
+class ChatSessionBase(BaseModel):
+    title: Optional[str] = None  # Title can be optional
+
+class ChatSessionCreate(ChatSessionBase):
+    user_id: int
+
+class ChatSessionResponse(ChatSessionBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    messages: List[ChatMessageResponse] = []
+
+    class Config:
+        from_attributes = True
+
+# ChatSummary Model
+class ChatSummaryResponse(BaseModel):
+    id: int
+    chat_id: int
+    summary_text: str
+    last_updated: datetime
+
+    class Config:
+        from_attributes = True

@@ -1,13 +1,30 @@
 import requests
+import streamlit as st
+from typing import Optional
 
 API_URL = "http://localhost:8000"
 
-def check_server():
+def check_server() -> bool:
+    """Check if the FastAPI server is running"""
     try:
         requests.get(f"{API_URL}/docs")
         return True
     except requests.exceptions.ConnectionError:
         return False
+
+def render_server_status():
+    """Render server status page"""
+    st.title("Server Status")
+    
+    if check_server():
+        st.success("FastAPI server is running!")
+    else:
+        st.error("""
+            FastAPI server is not running. Please start the server first:
+            ```bash
+            uvicorn app.main:app --reload
+            ```
+        """)
 
 def login(email: str, password: str):
     try:

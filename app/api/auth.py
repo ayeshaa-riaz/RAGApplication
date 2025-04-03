@@ -29,13 +29,13 @@ def signup(user: schemas.UserCreate, db: Session = Depends(get_db)):
 # User Login (Authentication)
 @router.post("/login", response_model=schemas.Token)
 def login(
-    form_data: schemas.LoginRequest,
+    form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
 ):
     """
     Authenticate user and return access token.
     """
-    user = auth_service.authenticate_user(db, form_data)
+    user = auth_service.authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -45,7 +45,12 @@ def login(
     
     access_token_expires = timedelta(minutes=auth_service.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = auth_service.create_access_token(
-        data={"sub": user.email}, expires_delta=access_token_expires
+        data={"sub": user.email, "user_id": user.id},
+        expires_delta=access_token_expires
     )
     
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_id": user.id
+    }

@@ -131,13 +131,13 @@ def create_user(db: Session, user: schemas.UserCreate):
         db.rollback()  # Ensure the DB isn't left in an inconsistent state
         return None
 
-def authenticate_user(db: Session, user: schemas.LoginRequest):
-    user_in_db = get_user_by_email(db, user.email)
+def authenticate_user(db: Session, username: str, password: str):
+    user_in_db = get_user(db, username)
     if not user_in_db:
         return False
-    if not verify_password(user.password, user_in_db.password_hash):
+    if not verify_password(password, user_in_db.password_hash):
         return False
-    return user 
+    return user_in_db 
 
 
 

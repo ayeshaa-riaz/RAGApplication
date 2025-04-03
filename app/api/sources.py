@@ -1,42 +1,67 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File
+from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from typing import Dict, Optional
-from app.services.source_service import extract_text_from_pdf, source_store
-from app.services.source_service import process_pdf_file
 from ..rag.document_loader import DocumentLoader
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from ..services.qdrant_service import QdrantService
+import logging
 import uuid
+import os
+from pathlib import Path
 
-
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 document_loader = DocumentLoader()
 
-@router.post("/upload/pdf")
-async def upload_pdf(file: UploadFile = File(...),collection_name="PrimaryCollection"):
-    """Upload a PDF file and store its content in both source store and Qdrant."""
-    try:
-        # Process the PDF file and store its content in the source store
-        source_id = process_pdf_file(file, extract_text_from_pdf, source_store)
+# Create uploads directory if it doesn't exist
+UPLOAD_DIR = Path("/Users/dev/Desktop/store ")
+UPLOAD_DIR.mkdir(exist_ok=True)
 
-        # Read file content for vector storage
-        file_content = await file.read()
+@router.post("/upload/pdf")
+async def upload_pdf(file: UploadFile = File(...)):
+    """Upload a PDF file, store it locally, then process and store its content in Qdrant."""
+    try:
+        logger.info(f"Starting PDF upload process for file: {file.filename}")
+        
+        # Validate file type
+        if not file.filename.endswith(".pdf"):
+            raise HTTPException(status_code=400, detail="Only PDF files are allowed")
+
+        # Generate unique filename
+        unique_filename = f"{uuid.uuid4()}_{file.filename}"
+        file_path = UPLOAD_DIR / unique_filename
+
+        # Save file locally
+        logger.info(f"Saving file to {file_path}")
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            if not content:
+                raise HTTPException(status_code=400, detail="Empty file content")
+            buffer.write(content)
 
         # Process and store in Qdrant
-        documents = await document_loader.load_and_split_pdf(file_content, file.filename)
-        qdrant = await document_loader.store_documents(
-            documents=documents,
-            collection_name=collection_name
-        )
+        logger.info("Loading and splitting PDF...")
+        documents = await document_loader.load_and_split_pdf(content, file.filename)
+        logger.info(f"PDF split into {len(documents)} chunks")
+
+        logger.info("Storing documents in Qdrant...")
+        qdrant_service = QdrantService()
+        await qdrant_service.store_documents(documents=documents)
+        logger.info("Documents stored successfully in Qdrant")
 
         return {
             "message": "File uploaded and processed successfully",
-            "source_id": source_id,
+            "source_id": str(uuid.uuid4()),
+            "file_path": str(file_path),
             "chunks_count": len(documents)
         }
 
     except HTTPException as http_err:
-        raise http_err  # Rethrow HTTP exceptions
+        logger.error(f"HTTP Exception: {str(http_err)}")
+        raise http_err
     except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=500,
             detail=f"Error processing PDF: {str(e)}"
@@ -45,14 +70,11 @@ async def upload_pdf(file: UploadFile = File(...),collection_name="PrimaryCollec
 
 @router.get("/get_all_sources/")
 async def get_sources(source_type: Optional[str] = None, page: int = 1, limit: int = 10):
-    """Retrieve all stored sources with optional filtering and pagination."""
-    sources = list(source_store.values())
-
-    if source_type:
-        sources = [s for s in sources if s["type"] == source_type]
-
-    start, end = (page - 1) * limit, page * limit
-    return sources[start:end]
+    """This endpoint is now deprecated as we no longer use the source store."""
+    raise HTTPException(
+        status_code=501,
+        detail="This endpoint is deprecated. Please use Qdrant's search functionality instead."
+    )
 
 # @router.get("/source/{source_id}")
 # async def get_source_by_id(source_id: str):
