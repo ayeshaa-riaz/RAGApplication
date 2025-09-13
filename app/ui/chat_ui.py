@@ -2,11 +2,12 @@ import streamlit as st
 import requests
 from datetime import datetime
 from typing import List, Dict, Optional
-from app.ui.server_ui import get_chat_history
+from server_ui import get_chat_history
 import json
 import logging
 
-API_URL = "http://localhost:8000"
+API_URL = "http://backend:8000"
+
 logger = logging.getLogger(__name__)
 
 def start_chat(token: str) -> Optional[dict]:
@@ -207,7 +208,7 @@ def render_chat_page():
                 try:
                     # Call the RAG endpoint
                     response = requests.post(
-                        "http://localhost:8000/api/chat/query",
+                        f"{API_URL}/api/chat/query",
                         json={
                             "query": prompt,
                             "user_id": st.session_state.user_id,

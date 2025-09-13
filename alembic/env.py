@@ -1,16 +1,25 @@
 import os
+import sys
+
+sys.path.append('/app_root')
+
+
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from alembic import context
 from dotenv import load_dotenv
+# below line is for chekcing
+
+
+
 
 # Import all models here
 from app.db.models import Base, User, ChatSession, ChatMessage
 
 # Load environment variables from .env file
 load_dotenv()
-
+print("Tables detected by Alembic:", Base.metadata.tables.keys())
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

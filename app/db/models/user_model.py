@@ -1,7 +1,9 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime, Text
 from sqlalchemy.orm import relationship
-from app.db.database import Base  # Assuming you have a database.py file with Base
+from ..models import Base  # ✅ Use the same Base # Assuming you have a database.py file with Base
+
+print("✅ user_model.py loaded")
 
 # ✅ 1. Users Table
 class User(Base):

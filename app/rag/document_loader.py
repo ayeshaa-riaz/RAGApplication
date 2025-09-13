@@ -1,6 +1,6 @@
 from langchain_community.document_loaders import WebBaseLoader, PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from .embeddings import get_embeddings
+from  .embeddings import get_embeddings
 from typing import List
 import tempfile
 import os

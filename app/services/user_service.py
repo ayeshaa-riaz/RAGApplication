@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from app.db.models.user_model import User
-from app.db.schemas import schemas
-from app.services.auth_service import get_password_hash
+from db.models.user_model import User
+from db.schemas import schemas
+from services.auth_service import get_password_hash
 from fastapi import HTTPException, status
 
 async def update_user_profile(

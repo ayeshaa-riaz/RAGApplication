@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from app.db.database import get_db
-from app.db.schemas import schemas
-from app.services import auth_service
+from db.database import get_db
+from db.schemas import schemas
+from services import auth_service
 from datetime import datetime, timedelta
 from typing import Optional
 

@@ -2,7 +2,9 @@ import requests
 import streamlit as st
 from typing import Optional
 
-API_URL = "http://localhost:8000"
+# API_URL = "http://ragapplication-backend-1:8000"
+API_URL = "http://backend:8000"
+
 
 def check_server() -> bool:
     """Check if the FastAPI server is running"""

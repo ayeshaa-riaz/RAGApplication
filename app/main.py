@@ -1,5 +1,6 @@
 from fastapi import FastAPI
-from .api import api_router
+from api import api_router
+
 
 
 app = FastAPI(
@@ -8,7 +9,9 @@ app = FastAPI(
     version="1.0.0"
 )
 
-
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
 # Include the API router
 app.include_router(api_router)
 

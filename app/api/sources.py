@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File, Depends
 from typing import Dict, Optional
-from ..rag.document_loader import DocumentLoader
-from ..services.qdrant_service import QdrantService
+from rag.document_loader import DocumentLoader
+from services.qdrant_service import QdrantService
 import logging
 import uuid
 import os
@@ -15,8 +15,9 @@ router = APIRouter()
 document_loader = DocumentLoader()
 
 # Create uploads directory if it doesn't exist
-UPLOAD_DIR = Path("/Users/dev/Desktop/store ")
-UPLOAD_DIR.mkdir(exist_ok=True)
+UPLOAD_DIR = Path("/Users/dev/Desktop/store")
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
 
 @router.post("/upload/pdf")
 async def upload_pdf(file: UploadFile = File(...)):

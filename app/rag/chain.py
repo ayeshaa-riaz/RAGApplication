@@ -1,10 +1,10 @@
 from langchain.chains import ConversationalRetrievalChain
 from langchain_anthropic import ChatAnthropic
 from langchain.memory import ConversationBufferMemory
-from ..services.qdrant_service import QdrantService  # Fix import spacing
+from services.qdrant_service import QdrantService  # Fix import spacing
 import os
-from ..db.database import get_db
-from ..db.models.chat_model import ChatMessage,ChatSession
+from db.database import get_db
+from db.models.chat_model import ChatMessage,ChatSession
 # from langchain.chat_models import ChatCohere 
 from langchain_cohere import ChatCohere
 from fastapi import HTTPException

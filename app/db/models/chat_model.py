@@ -1,7 +1,7 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, ForeignKey, Boolean, DateTime, Text
 from sqlalchemy.orm import relationship
-from app.db.database import Base  
+from ..models import Base 
 
 
 # ✅ 1. Chat Sessions Table (Stores chat metadata)

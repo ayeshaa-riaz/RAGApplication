@@ -2,7 +2,8 @@ import streamlit as st
 import requests
 from typing import Optional
 
-API_URL = "http://localhost:8000"
+API_URL = "http://backend:8000"
+
 
 def login(email: str, password: str) -> Optional[dict]:
     """Handle user login"""

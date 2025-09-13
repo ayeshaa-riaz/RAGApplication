@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from ..db.database import get_db
-from ..services import chat_service, auth_service
-from ..rag.chain import RAGChain
-from ..db.schemas.schemas import ChatSessionCreate, QueryRequest, ChatSessionResponse, ChatMessageCreate, ChatMessageResponse
+from db.database import get_db
+from services import chat_service, auth_service
+from rag.chain import RAGChain
+from db.schemas.schemas import ChatSessionCreate, QueryRequest, ChatSessionResponse, ChatMessageCreate, ChatMessageResponse
 from typing import List
 from datetime import datetime
-from ..db.models.chat_model import ChatSession, ChatMessage
+from db.models.chat_model import ChatSession, ChatMessage
 import logging as logger
 
 

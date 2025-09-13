@@ -1,6 +1,10 @@
-from ..database import Base
-from app.db.models.user_model import User
-from app.db.models.chat_model import ChatSession, ChatMessage
+# app/db/models/__init__.py
+from sqlalchemy.orm import declarative_base
 
-# Export all models
-__all__ = ["Base", "User", "ChatSession", "ChatMessage"]
+Base = declarative_base()  # ✅ This is the ONE Base used everywhere
+
+from .user_model import User
+from .chat_model import ChatSession, ChatMessage
+from .user_memory import UserMemory
+
+__all__ = ["Base", "User", "ChatSession", "ChatMessage", "UserMemory"]

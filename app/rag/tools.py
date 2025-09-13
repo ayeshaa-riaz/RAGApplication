@@ -1,7 +1,7 @@
 
 from langchain_core.tools import tool
 
-from app.rag.agent import agent_query
+from rag.agent import agent_query
 
 
 @tool

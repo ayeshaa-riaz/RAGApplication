@@ -12,7 +12,7 @@ from typing import List, Dict, Any, Optional
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
-from ..api.query import agent_query
+from api.query import agent_query
 
 import uuid
 

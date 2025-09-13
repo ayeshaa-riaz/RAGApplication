@@ -5,9 +5,9 @@ from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from ..db.database import get_db
-from ..db.models.user_model import User
-from ..db.schemas import schemas
+from db.database import get_db
+from db.models.user_model import User
+from db.schemas import schemas
 import os
 import logging
 

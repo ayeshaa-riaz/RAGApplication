@@ -6,8 +6,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.docstore.document import Document
 import os
 
-from ..db.models.chat_model import ChatSession, ChatSummary, ChatMessage
-from ..db.schemas import schemas
+from db.models.chat_model import ChatSession, ChatSummary, ChatMessage
+from db.schemas import schemas
 
 
 

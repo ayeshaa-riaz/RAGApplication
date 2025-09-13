@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from ..db.schemas import schemas
+from db.schemas import schemas
 from db.database import get_db
-from ..services.qdrant_service import QdrantService
+from services.qdrant_service import QdrantService
 
 router = APIRouter()
 qdrant = QdrantService()

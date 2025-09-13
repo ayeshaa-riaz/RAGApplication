@@ -4,7 +4,7 @@ from langchain_community.embeddings import OpenAIEmbeddings
 from qdrant_client.http.models import Distance, VectorParams
 from dotenv import load_dotenv
 import os
-from app.rag.embeddings import get_embeddings
+from rag.embeddings import get_embeddings
 from qdrant_client import QdrantClient
 import logging
 from langchain_qdrant import QdrantVectorStore,RetrievalMode
@@ -21,7 +21,8 @@ class QdrantService:
         # # Initialize Qdrant client
         self.client = QdrantClient(
             url=os.getenv("QDRANT_URL"),
-            api_key=os.getenv("QDRANT_API_KEY")
+            api_key=os.getenv("QDRANT_API_KEY"),
+            prefer_grpc=False
         )
         # Ensure collection exists
         self.ensure_collection_exists()
